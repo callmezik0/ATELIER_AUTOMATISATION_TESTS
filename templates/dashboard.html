@@ -1,0 +1,93 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Test Dashboard</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background-color: #f4f4f4; color: #333; }
+        .container { max-width: 900px; margin: auto; background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        h1, h2 { color: #0056b3; }
+        .summary { background-color: #e9ecef; padding: 15px; border-radius: 5px; margin-bottom: 20px; }
+        .summary p { margin: 5px 0; }
+        .test-results { margin-top: 20px; }
+        .test-results table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        .test-results th, .test-results td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        .test-results th { background-color: #007bff; color: white; }
+        .status-PASS { color: green; font-weight: bold; }
+        .status-FAIL { color: red; font-weight: bold; }
+        .action-buttons button { padding: 10px 15px; margin-right: 10px; background-color: #28a745; color: white; border: none; border-radius: 5px; cursor: pointer; }
+        .action-buttons button:hover { background-color: #218838; }
+        .error { color: red; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>API Test Dashboard</h1>
+
+        <div class="action-buttons">
+            <button onclick="location.href='/run'">Run Tests Now</button>
+        </div>
+
+        {% if message %}
+            <p>{{ message }}</p>
+        {% endif %}
+
+        {% if latest_run %}
+            <h2>Latest Test Run ({{ latest_run.api }})</h2>
+            <div class="summary">
+                <p><strong>Timestamp:</strong> {{ latest_run.timestamp }}</p>
+                <p><strong>Passed:</strong> {{ latest_run.summary.passed }}</p>
+                <p><strong>Failed:</strong> {{ latest_run.summary.failed }}</p>
+                <p><strong>Error Rate:</strong> {{ "%.2f"|format(latest_run.summary.error_rate * 100) }}%</p>
+                <p><strong>Avg Latency:</strong> {{ latest_run.summary.latency_ms_avg }} ms</p>
+                <p><strong>P95 Latency:</strong> {{ latest_run.summary.latency_ms_p95 }} ms</p>
+            </div>
+
+            <div class="test-results">
+                <h3>Individual Test Results:</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Test Name</th>
+                            <th>Status</th>
+                            <th>Latency (ms)</th>
+                            <th>Details</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for test in latest_run.tests %}
+                        <tr>
+                            <td>{{ test.name }}</td>
+                            <td class="status-{{ test.status }}">{{ test.status }}</td>
+                            <td>{{ test.latency_ms }}</td>
+                            <td>{% if test.details %}<span class="error">{{ test.details }}</span>{% else %}-{% endif %}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+        {% else %}
+            <p>No test runs available yet. Click 'Run Tests Now' to get started!</p>
+        {% endif %}
+
+        <h2>All Test History</h2>
+        {% if all_runs %}
+            <ul>
+                {% for run in all_runs %}
+                    <li>
+                        <strong>{{ run.timestamp }}:</strong>
+                        {{ run.api }} - Passed: {{ run.summary.passed }},
+                        Failed: {{ run.summary.failed }},
+                        Avg Latency: {{ run.summary.latency_ms_avg }} ms
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p>No history available.</p>
+        {% endif %}
+    </div>
+</body>
+</html>
